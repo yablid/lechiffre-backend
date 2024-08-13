@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RolesGuard } from '../../guards/roles.guard';
+import { Roles } from '../../decorators/roles.decorator';
 
 @Controller('users')
+@UseGuards(RolesGuard)
+@Roles(20)
+// can supersede for individual routes to change permission level
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -22,7 +27,7 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findById(id);
   }
 
   // Add other necessary routes

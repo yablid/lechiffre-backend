@@ -1,9 +1,13 @@
 // src/database/database.service.ts
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import * as fs from 'fs';
 import * as path from 'path';
+
+/* todo: for typing, may want to return generics from query ie. (but lost db client methods like rowcount)
+async query<T>(text: string, params?: any[]): Promise<T[]> ...
+ */
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -33,7 +37,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       await this.createTables();
     } catch (error) {
       console.error('Error creating tables:', error);
-      throw error;
+      throw new InternalServerErrorException('Error creating tables');
     }
 
   }
@@ -41,11 +45,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async query(text: string, params?: any[]) {
     try {
-      const res = await this.pool.query(text, params);
-      return res;
+      return await this.pool.query(text, params);
     } catch (error) {
       console.error('Database query error:', error);
-      throw error;
+      throw new InternalServerErrorException('Database query error');
     }
   }
 
@@ -62,7 +65,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     const sqlFiles = [
       'create_roles_table.sql',
       'create_users_table.sql',
-      'create_users_roles_table.sql'
+      'create_users_roles_table.sql',
+      'create_auth_requests_table.sql'
     ];
     const sqlDirectory = path.join(__dirname, '..', 'sql');
 

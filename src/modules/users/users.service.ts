@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { CreateUserDto } from './dto/create-user.dto';
 import User from './users.model';
@@ -93,8 +93,8 @@ export class UsersService {
     const user = {
       id: result.rows[0].id,
       username: result.rows[0].username,
-      password: 'REDACTED',
-      roles: [],
+      password: result.rows[0].password,
+      roles: result.rows[0].role_id ? [{ role_id: result.rows[0].role_id, name: result.rows[0].name }] : [],
       date_created: result.rows[0].date_created,
     }
 
@@ -105,14 +105,15 @@ export class UsersService {
     return user;
   }
 
-  async findById(id: number): Promise<User> {
+  async findById(id: string): Promise<User> {
+
     const result = await this.databaseService.query(
-      `SELECT u.id, u.username, u.date_created, r.role_id, r.name 
-       FROM users u
-       LEFT JOIN users_roles ur ON u.id = ur.user_id
-       LEFT JOIN roles r ON ur.role_id = r.role_id
-       WHERE u.id = $1`,
-      [id]
+    `SELECT u.id, u.username, u.date_created, r.role_id, r.name 
+     FROM users u
+     LEFT JOIN users_roles ur ON u.id = ur.user_id
+     LEFT JOIN roles r ON ur.role_id = r.role_id
+     WHERE u.id = $1`,
+    [id]
     );
 
     if (result.rowCount === 0) {
@@ -132,6 +133,18 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async getUserRoles(userId: string): Promise<{ role_id: number; name: string }[]> {
+    const result = await this.databaseService.query(
+      `SELECT r.role_id, r.name
+       FROM users_roles ur
+       JOIN roles r ON ur.role_id = r.role_id
+       WHERE ur.user_id = $1`,
+      [userId]
+    );
+
+    return result.rows;
   }
 
   private generatePassword(): string {

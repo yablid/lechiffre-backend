@@ -36,7 +36,7 @@ export class RolesService {
     return result.rows.map(row => new Role(row.role_id, row.name));
   }
 
-  async findOne(id: number): Promise<Role> {
+  async findById(id: number): Promise<Role> {
     // Retrieve a specific role by its role_id
     const result = await this.databaseService.query(
       'SELECT role_id, name FROM roles WHERE role_id = $1',
