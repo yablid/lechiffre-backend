@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 import base64url from 'base64url';
 
-interface IUser {
+export interface IUser {
   sub: string;
   roles: number[];
 }
@@ -29,13 +29,19 @@ export class AuthService {
   }
 
   verifyAccessToken(token: string): IUser {
-    console.log("auth.service verifying access token...");
+    console.log(`auth.service verifying access token: ${token}`);
     const secret = this.JWT_SECRET;
     if (!secret) {
       throw new UnauthorizedException('JWT_SECRET not set');
     }
-    const payload = this.jwtService.verify(token, { secret: secret });
-    return { sub: payload.sub, roles: payload.roles };
+
+    try {
+      const payload = this.jwtService.verify(token, { secret: secret });
+      return { sub: payload.sub, roles: payload.roles };
+    } catch (error) {
+      console.error('Error verifying access token:', error);
+      throw new UnauthorizedException('Invalid access token');
+    }
   }
 
   async refreshAccessToken(refreshToken: string) {
@@ -84,7 +90,7 @@ export class AuthService {
   }
 
   verifyCodeVerifier(codeChallenge: string, codeVerifier: string, method: string = 'S256'): boolean {
-    let derivedChallenge;
+    let derivedChallenge: string;
 
     if (method === 'S256') {
       derivedChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
@@ -92,7 +98,7 @@ export class AuthService {
       // If method is not S256, just return the code verifier as is
       derivedChallenge = codeVerifier;
     }
-
+    console.log("Code verification result: ", derivedChallenge === codeChallenge)
     return derivedChallenge === codeChallenge;
   }
 

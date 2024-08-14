@@ -9,16 +9,16 @@ export class AuthRequestsService {
 
   async storeAuthRequest(authRequest: AuthRequest): Promise<void> {
     const query = `
-      INSERT INTO auth_requests (id, client_id, redirect_uri, code_challenge, code_challenge_method, oauth_state, created_at, expires_at)
+      INSERT INTO auth_requests (id, client_id, redirect_url, code_challenge, code_challenge_method, oauth_state, created_at, expires_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW() + INTERVAL '10 minutes')
     `;
     const params = [
       authRequest.id,
-      authRequest.clientId,
-      authRequest.redirectUri,
-      authRequest.codeChallenge,
-      authRequest.codeChallengeMethod,
-      authRequest.oauthState,
+      authRequest.client_id,
+      authRequest.redirect_url,
+      authRequest.code_challenge,
+      authRequest.code_challenge_method,
+      authRequest.oauth_state,
     ];
     try {
       await this.databaseService.query(query, params);
@@ -49,6 +49,7 @@ export class AuthRequestsService {
   }
 
   async storeUserId(authRequestId: string, userId: string): Promise<void> {
+    console.log(`StoreUserId storing user_id ${userId} for auth_request_id ${authRequestId}`);
     const query = `
       UPDATE auth_requests
       SET user_id = $1
@@ -65,20 +66,10 @@ export class AuthRequestsService {
 
   if (result.rows.length > 0) {
     const row = result.rows[0];
-    return new AuthRequest(
-      row.id,
-      row.client_id,
-      row.redirect_uri,
-      row.code_challenge,
-      row.code_challenge_method,
-      row.user_id,
-      row.auth_code,
-      row.created_at,
-      row.expires_at
-    );
+    return new AuthRequest(row);
   }
-  return null; // Return null if no matching request is found
-}
+    return null; // Return null if no matching request is found
+  }
 
   async deleteAuthRequest(auth_request_id: string): Promise<void> {
     const query = `

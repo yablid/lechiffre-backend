@@ -1,8 +1,8 @@
 /* src/sql/create_auth_requests_table.sql */
-CREATE TABLE IF NOT EXISTS sauth_requests (
+CREATE TABLE IF NOT EXISTS auth_requests (
     id UUID PRIMARY KEY,
     client_id VARCHAR(255) NOT NULL,
-    redirect_uri TEXT NOT NULL,
+    redirect_url TEXT NOT NULL,
     code_challenge TEXT NOT NULL,
     code_challenge_method VARCHAR(255),
     oauth_state TEXT,

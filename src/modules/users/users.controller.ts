@@ -6,7 +6,7 @@ import { Roles } from '../../decorators/roles.decorator';
 
 @Controller('users')
 @UseGuards(RolesGuard)
-@Roles(20)
+@Roles(20) // todo: change to add users in dev
 // can supersede for individual routes to change permission level
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
