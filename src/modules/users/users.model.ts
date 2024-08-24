@@ -1,6 +1,8 @@
 // src/modules/users/users.model.ts
 import Role from '../roles/roles.model';
 
+// todo: don't need roles here anymore as there is a join table
+
 class User {
   id?: string;
   username: string;
