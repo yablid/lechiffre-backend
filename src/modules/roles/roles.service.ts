@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { Role } from './roles.model';
+import { Role } from './schema/roles.model';
 import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
@@ -27,6 +27,16 @@ export class RolesService {
 
     const newRole = result.rows[0];
     return new Role(newRole.role_id, newRole.name);
+  }
+
+  async validateRole(roleId: number): Promise<void> {
+    const roleExists = await this.databaseService.query(
+      'SELECT 1 FROM roles WHERE role_id = $1 LIMIT 1',
+      [roleId]
+    );
+    if (roleExists.rowCount === 0) {
+      throw new BadRequestException(`Role with id ${roleId} not found`);
+    }
   }
 
   async findAll(): Promise<Role[]> {

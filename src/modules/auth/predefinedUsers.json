@@ -1,0 +1,22 @@
+[
+  {
+    "email": "supervisor@gmail.com",
+    "role_id": 10
+  },
+  {
+    "email": "manager@gmail.com",
+    "role_id": 20
+  },
+  {
+    "email": "engineer@gmail.com",
+    "role_id": 30
+  },
+  {
+    "email": "team@gmail.com",
+    "role_id": 40
+  },
+  {
+    "email": "guest@gmail.com",
+    "role_id": 50
+  }
+]

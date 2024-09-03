@@ -5,7 +5,9 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
-      "sql/*"
+      "sql/*",
+      "modules/auth/predefinedUsers.json",
+      "modules/roles/roles.json"
     ]
   }
 }

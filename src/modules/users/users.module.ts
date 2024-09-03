@@ -8,7 +8,6 @@ import { RolesGuard } from '../../guards/roles.guard';
 
 @Module({
   imports: [
-    DatabaseModule,
     JwtModule
   ],
   controllers: [UsersController],

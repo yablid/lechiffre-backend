@@ -32,14 +32,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
 
-    try {
-      console.log("Creating tables if not exist...");
-      await this.createTables();
-    } catch (error) {
-      console.error('Error creating tables:', error);
-      throw new InternalServerErrorException('Error creating tables');
-    }
-
+    await this.createTables();
+    await this.populateRoles();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,23 +56,52 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async createTables() {
-    const sqlFiles = [
-      'create_roles_table.sql',
-      'create_users_table.sql',
-      'create_users_roles_table.sql',
-      'create_auth_requests_table.sql'
-    ];
-    const sqlDirectory = path.join(__dirname, '..', 'sql');
 
-    for (const file of sqlFiles) {
-      const filePath = path.join(sqlDirectory, file);
-      const sql = fs.readFileSync(filePath, 'utf8');
-      try {
-        await this.query(sql);
-        console.log(`Executed ${file}`);
-      } catch (error) {
-        console.error(`Error executing ${file}:`, error);
+    try {
+      const sqlFiles = [
+        'create_roles_table.sql',
+        'create_users_table.sql',
+        'create_users_roles_table.sql',
+        'create_auth_requests_table.sql'
+      ];
+      const sqlDirectory = path.join(__dirname, '..', 'sql');
+
+      for (const file of sqlFiles) {
+        const filePath = path.join(sqlDirectory, file);
+        const sql = fs.readFileSync(filePath, 'utf8');
+        try {
+          await this.query(sql);
+          console.log(`Executed ${file}`);
+        } catch (error) {
+          console.error(`Error executing ${file}:`, error);
+        }
       }
+    } catch (error) {
+      console.error('Error creating tables:', error);
+      throw new InternalServerErrorException('Error creating tables');
+    }
+  }
+
+  private async populateRoles() {
+    try {
+      const filePath = path.join(__dirname, '../modules/roles/roles.json');
+      const jsonData = fs.readFileSync(filePath, 'utf8');
+      const roles = JSON.parse(jsonData);
+
+      for (const role of roles) {
+        const result = await this.query('SELECT * FROM roles WHERE role_id = $1', [role.role_id]);
+        if (result.rowCount === 0) {
+          await this.query(
+            'INSERT INTO roles (role_id, name) VALUES ($1, $2)',
+            [role.role_id, role.name]
+          );
+          console.log(`Inserted role: ${role.name}`);
+        }
+      }
+      console.log("Populated roles.")
+    } catch (error) {
+      console.error('Error populating roles:', error);
+      throw new InternalServerErrorException('Error populating roles');
     }
   }
 }

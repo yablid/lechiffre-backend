@@ -81,15 +81,15 @@ export class AuthController {
 
   @Post('login')
   async login(@Req() req: Request, @Res() res: Response) {
-    console.log("auth.controller login called");
-    const { username, password, auth_request_id } = req.body;
+    console.log("auth.controller login called with req.body: ", req.body);
+    const { email, password, auth_request_id } = req.body;
 
-    const user = await this.authService.validateUser(username, password);
+    const user = await this.authService.validateUser(email, password);
     if (!user) {
-      console.log(`auth.controller unable to validate user: ${username}`);
-      return res.status(401).send({ message: 'Invalid username or password' });
+      console.log(`auth.controller unable to validate user: ${email}`);
+      return res.status(401).send({ message: 'Invalid email or password' });
     }
-    console.log(`auth.controller validated user: ${username} user.id: ${user.id}`);
+    console.log(`auth.controller validated user: ${email} user.id: ${user.id}`);
 
     const authRequest = await this.authRequestsService.findById(auth_request_id);
     if (!authRequest) {
@@ -156,7 +156,7 @@ export class AuthController {
     console.log("auth.controller token exchange generating new tokens...")
     const accessToken = this.authService.generateAccessToken(authRequest.user_id, roleIds );
     const refreshToken = this.authService.generateRefreshToken(authRequest.user_id);
-    const idToken = this.authService.generateIdToken(authRequest.user_id, user.username);
+    const idToken = this.authService.generateIdToken(authRequest.user_id, user.email);
 
     res.cookie('refresh-token', refreshToken, {
       httpOnly: true,

@@ -1,4 +1,5 @@
 // src/guards/backend.guard.ts
+/* general api key guard */
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';

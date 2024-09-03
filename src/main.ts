@@ -1,3 +1,4 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
@@ -16,6 +17,7 @@ async function bootstrap() {
     credentials: true, // If you need to allow cookies or other credentials
   });
   app.use(cookieParser());
+
   // ---TEMP LOGGING REQUEST ORIGIN FOR DEVELOPMENT ---
   app.use((req, res, next) => {
     console.log('Origin:', req.headers.origin);

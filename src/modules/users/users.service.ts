@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { CreateUserDto } from './dto/create-user.dto';
-import User from './users.model';
+import User from './schema/users.model';
 import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
@@ -10,10 +10,11 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
 
-    console.log("users service creating user with payload: ", createUserDto);
+    console.log("users.service creating user with payload: ", createUserDto);
 
     // todo: temp solution
-    const password = 'test' // this.generatePassword();
+    const password = 'testtest' // this.generatePassword();
+
     const hash = await argon2.hash(password);
     if (!hash) {
       throw Error("Error hashing password.")
@@ -31,8 +32,8 @@ export class UsersService {
     const role = roleExists.rows[0];
 
     const userResult = await this.databaseService.query(
-      'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
-      [createUserDto.username, hash]
+      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *',
+      [createUserDto.email, hash]
     );
 
     const newUser = userResult.rows[0];
@@ -40,10 +41,10 @@ export class UsersService {
       'INSERT INTO users_roles (user_id, role_id) VALUES ($1, $2)',
       [newUser.id, createUserDto.role_id]
     );
-    console.log(`Created new user with id ${newUser.id} and username ${newUser.username}`);
+    console.log(`Created new user with id ${newUser.id} and email ${newUser.email}`);
     return {
       id: newUser.id,
-      username: newUser.username,
+      email: newUser.email,
       roles: [{ role_id: role.role_id, name: role.name }],
       date_created: newUser.date_created
     };
@@ -51,7 +52,7 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     const result = await this.databaseService.query(
-      `SELECT u.id, u.username, u.date_created, r.role_id, r.name 
+      `SELECT u.id, u.email, u.date_created, r.role_id, r.name 
        FROM users u
        LEFT JOIN users_roles ur ON u.id = ur.user_id
        LEFT JOIN roles r ON ur.role_id = r.role_id`
@@ -63,7 +64,7 @@ export class UsersService {
       if (!usersMap.has(row.id)) {
         usersMap.set(row.id, {
           id: row.id,
-          username: row.username,
+          email: row.email,
           password: 'REDACTED', // Do not include the password in the returned data
           roles: [],
           date_created: row.date_created,
@@ -76,23 +77,23 @@ export class UsersService {
     return Array.from(usersMap.values());
   }
 
-  async findByUsername(username: string): Promise<User> {
+  async findByEmail(email: string): Promise<User> {
     const result = await this.databaseService.query(
-      `SELECT u.id, u.username, u.password, u.date_created, r.role_id, r.name 
+      `SELECT u.id, u.email, u.password, u.date_created, r.role_id, r.name 
        FROM users u
        LEFT JOIN users_roles ur ON u.id = ur.user_id
        LEFT JOIN roles r ON ur.role_id = r.role_id
-       WHERE u.username = $1`,
-      [username]
+       WHERE u.email = $1`,
+      [email]
     );
 
     if (result.rowCount === 0) {
-      throw new NotFoundException(`User with username ${username} not found`);
+      throw new NotFoundException(`User with email ${email} not found`);
     }
 
     const user = {
       id: result.rows[0].id,
-      username: result.rows[0].username,
+      email: result.rows[0].email,
       password: result.rows[0].password,
       roles: result.rows[0].role_id ? [{ role_id: result.rows[0].role_id, name: result.rows[0].name }] : [],
       date_created: result.rows[0].date_created,
@@ -108,7 +109,7 @@ export class UsersService {
   async findById(id: string): Promise<User> {
 
     const result = await this.databaseService.query(
-    `SELECT u.id, u.username, u.date_created, r.role_id, r.name 
+    `SELECT u.id, u.email, u.date_created, r.role_id, r.name 
      FROM users u
      LEFT JOIN users_roles ur ON u.id = ur.user_id
      LEFT JOIN roles r ON ur.role_id = r.role_id
@@ -122,7 +123,7 @@ export class UsersService {
 
     const user = {
       id: result.rows[0].id,
-      username: result.rows[0].username,
+      email: result.rows[0].email,
       password: '', // Do not include the password in the returned data
       roles: [],
       date_created: result.rows[0].date_created,
