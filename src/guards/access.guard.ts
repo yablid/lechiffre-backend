@@ -34,7 +34,7 @@ export class AccessGuard implements CanActivate {
       const payload = this.authService.verifyAccessToken(accessToken);
 
       // Attach the user to the request object
-      request.user = { id: payload.sub, roles: payload.roles }
+      request.user = { id: payload.sub, role_id: payload.role_id }
       return true;
     } catch (error) {
         if (error instanceof TokenExpiredError) {

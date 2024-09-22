@@ -6,8 +6,7 @@
     "deleteOutDir": true,
     "assets": [
       "sql/*",
-      "modules/auth/predefinedUsers.json",
-      "modules/roles/roles.json"
+      "modules/auth/predefinedUsers.json"
     ]
   }
 }

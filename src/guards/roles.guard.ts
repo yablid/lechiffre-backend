@@ -35,7 +35,8 @@ export class RolesGuard implements CanActivate {
     try {
       // Verify the access token
       const payload = this.jwtService.verify(accessToken, { secret: this.JWT_SECRET });
-      request.user = {id: payload.sub, roles: payload.roles}
+      request.user = {id: payload.sub, role_id: payload.role_id}
+
     } catch (error) {
         if (error instanceof TokenExpiredError) {
           throw new UnauthorizedException('AccessTokenExpired')
@@ -47,17 +48,16 @@ export class RolesGuard implements CanActivate {
         }
     }
 
-    const requiredRole = this.reflector.get<number>('role', context.getHandler());
+    const requiredRole = this.reflector.get<number>('role_id', context.getHandler()) ||
+                        this.reflector.get<number>('role_id', context.getClass());
+
     if (requiredRole === undefined) {
       // If no role was provided in controller guard code, deny
       throw new ForbiddenException('Role not defined');
     }
 
-    // Check if the user has the required role or a higher privilege role
-    const hasRequiredRole = request.user.roles.some((role: number) => role <= requiredRole);
-
-    if (!hasRequiredRole) {
-      throw new ForbiddenException('User does not have the required roles');
+    if (request.user.role_id > requiredRole) {
+      throw new ForbiddenException('User does not have the required role');
     }
 
     return true;

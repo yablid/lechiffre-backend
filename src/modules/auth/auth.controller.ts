@@ -27,7 +27,8 @@ export class AuthController {
   @Get('access-token')
   async verifyAccessToken(@Req() req: Request): Promise<IUser> {
     const token = req.headers['authorization']?.split(' ')[1]; // Extract the Bearer token
-    if (!token) {
+    if (!token || token==='null') {
+      console.log("auth.controller found no access token.")
       throw new UnauthorizedException('Access token not provided');
     }
     console.log("auth.controller verifying access token...");
@@ -150,11 +151,8 @@ export class AuthController {
       throw new UnauthorizedException('User not found');
     }
 
-    const roles = await this.usersService.getUserRoles(user.id);
-    const roleIds = roles.map(role => role.role_id);
-
     console.log("auth.controller token exchange generating new tokens...")
-    const accessToken = this.authService.generateAccessToken(authRequest.user_id, roleIds );
+    const accessToken = this.authService.generateAccessToken(authRequest.user_id, user.role_id );
     const refreshToken = this.authService.generateRefreshToken(authRequest.user_id);
     const idToken = this.authService.generateIdToken(authRequest.user_id, user.email);
 

@@ -1,5 +1,5 @@
 // src/modules/auth/auth.service.ts
-import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +16,7 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 
 export interface IUser {
   sub: string;
-  roles: number[];
+  role_id: number;
 }
 
 @Injectable()
@@ -68,7 +68,7 @@ export class AuthService {
   }
 
   verifyAccessToken(token: string): IUser {
-    console.log(`auth.service verifying access token: ${token}`);
+    console.log(`auth.service verifying access token: ${token} of type ${typeof token}`);
     const secret = this.JWT_SECRET;
     if (!secret) {
       throw new UnauthorizedException('JWT_SECRET not set');
@@ -79,7 +79,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(token, { secret: secret });
       console.log("auth.service verifyAccessToken payload: ", payload);
-      return { sub: payload.sub, roles: payload.roles };
+      return { sub: payload.sub, role_id: payload.role_id };
     } catch (error) {
       console.error('Error verifying access token:', error);
       throw new UnauthorizedException('Invalid access token');
@@ -101,9 +101,7 @@ export class AuthService {
       throw new UnauthorizedException(`Unable to find user: ${payload.sub} in database`);
     }
 
-    const roles = await this.usersService.getUserRoles(user.id);
-    const roleIds = roles.map(role => role.role_id);
-    const accessToken = this.generateAccessToken(user.id, roleIds);
+    const accessToken = this.generateAccessToken(user.id, user.role_id);
     const idToken = this.generateIdToken(user.id, user.email);
 
     return {
@@ -150,8 +148,8 @@ export class AuthService {
     });
   }
 
-  generateAccessToken(userId: string, roles: number[]): string {
-    return this.jwtService.sign({ sub: userId, roles: roles }, {
+  generateAccessToken(userId: string, role_id: number): string {
+    return this.jwtService.sign({ sub: userId, role_id: role_id }, {
       secret: this.JWT_SECRET,
       expiresIn: '15m',  // Access tokens are usually short-lived
     });
@@ -217,7 +215,7 @@ export class AuthService {
       accessToken,
       user: {
         email: user.email,
-        roles: user.roles,
+        role_id: user.role_id,
       }
     })
   }

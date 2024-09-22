@@ -7,14 +7,14 @@ class User {
   id?: string;
   email: string;
   password: string;
-  roles: Role[];
+  role_id: number;
   date_created: Date;
 
-  constructor(email: string, password: string, roles: Role[], id?: string) {
+  constructor(email: string, password: string, role_id: number, id?: string) {
     this.id = id;
     this.email = email;
     this.password = password;
-    this.roles = roles;
+    this.role_id = role_id;
     this.date_created = new Date();
   }
 }

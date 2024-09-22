@@ -7,15 +7,19 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProjectModule } from './modules/project/project.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true
     }),
+    CommonModule,
     DatabaseModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [
