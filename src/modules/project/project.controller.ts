@@ -22,7 +22,7 @@ export class ProjectController {
 
   // todo: file validation: https://docs.nestjs.com/techniques/file-upload
 
-  @Post('uploadDPGF')
+  @Post('dpgf/upload')
   @UseInterceptors(FileInterceptor('file'))  // File upload handling
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -34,10 +34,10 @@ export class ProjectController {
 
     try {
       // Send file to the ProjectService for processing (or forwarding to Python backend)
-      const result = await this.projectService.processDPGF(file);
+      const result = await this.projectService.uploadDPGF(file);
 
       return res.status(HttpStatus.OK).json({
-        message: 'File uploaded and processed successfully',
+        message: 'success',
         result,
       });
     } catch (error) {
